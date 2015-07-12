@@ -2,7 +2,7 @@ package main
 
 import (
 	"errors"
-	// "fmt"
+	"fmt"
 )
 
 const TOTAL = 9
@@ -22,7 +22,7 @@ func NewField() *Field {
 }
 
 func (field *Field) Set(position int, celltype CellType) error {
-	if position > TOTAL-1 {
+	if position < 0 || position >= TOTAL {
 		return errors.New("index error")
 	}
 	if field.cells[position] != Empty {
@@ -39,10 +39,10 @@ func (field *Field) Clone() *Field {
 }
 
 // an immutable version of `Set`, returns error, *Field
-func (field *Field) Step(position int, celltype CellType) (error, *Field) {
+func (field *Field) Step(position int, celltype CellType) (*Field, error) {
 	_field := field.Clone()
 	error := _field.Set(position, celltype)
-	return error, _field
+	return _field, error
 }
 
 func (field *Field) Empties() []int {
@@ -79,12 +79,40 @@ func (field *Field) Winner(celltype CellType) bool {
 func (field *Field) winningCombination(celltype CellType, strip []int) bool {
 	if len(strip) == 3 {
 		ret := true
-		for i := 1; i < 3; i++ {
+		for i := 0; i < 3; i++ {
 			ret = ret && (field.cells[strip[i]] == celltype)
 		}
 		return ret
 	}
 	return false
+}
+
+func (field *Field) GameOver() bool {
+	return len(field.Empties()) == 0 || field.Winner(X) || field.Winner(O)
+}
+
+func (field *Field) Print() {
+	fmt.Print("\n", field.ToString(), "\n")
+}
+
+func (field *Field) HumanInput() {
+	for {
+		var i int
+		_, error := fmt.Scanf("%d", &i)
+		if error != nil {
+			continue
+		}
+		error = field.Set(i, X)
+		if error != nil {
+			fmt.Println(error)
+			continue
+		} else {
+			return
+		}
+	}
+}
+
+func (field *Field) CPUInput() {
 }
 
 func (field *Field) ToString() string {

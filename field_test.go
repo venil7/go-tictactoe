@@ -74,3 +74,40 @@ func TestSetGetField2(t *testing.T) {
 		t.Fatal("repeated set/get failure")
 	}
 }
+
+// not game over when not full
+func TestGameOver1(t *testing.T) {
+	field := NewField()
+	field.Set(4, X)
+	if field.GameOver() {
+		t.Fatal("game over when not full")
+	}
+}
+
+// not game over when not full
+func TestGameOver2(t *testing.T) {
+	field := NewField()
+	field.Set(0, X)
+	field.Set(1, X)
+	field.Set(2, X)
+	if !field.GameOver() {
+		t.Fatal("winning comb doesnt game over")
+	}
+}
+
+// game over when full
+func TestGameOver3(t *testing.T) {
+	field := NewField()
+	field.Set(0, X)
+	field.Set(1, X)
+	field.Set(2, O)
+	field.Set(3, O)
+	field.Set(4, O)
+	field.Set(5, X)
+	field.Set(6, O)
+	field.Set(7, X)
+	field.Set(8, X)
+	if !field.GameOver() {
+		t.Fatal("winning comb doesnt game over")
+	}
+}

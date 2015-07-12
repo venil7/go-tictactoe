@@ -1,10 +1,15 @@
 package main
 
 import (
-	"fmt"
+// "fmt"
 )
 
 func main() {
 	field := NewField()
-	fmt.Print(field.ToString())
+	for !field.GameOver() {
+		field.Print()
+		field.HumanInput()
+		field.CPUInput()
+	}
+	field.Print()
 }

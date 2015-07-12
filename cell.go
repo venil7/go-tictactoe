@@ -16,7 +16,7 @@ func (celltype CellType) ToString() string {
 	case O:
 		ret = "o"
 	case Empty:
-		ret = "\u25A1"
+		ret = "_"
 	}
 	return ret
 }

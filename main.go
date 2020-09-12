@@ -1,11 +1,9 @@
 package main
 
-import (
-// "fmt"
-)
+import Engine "github.com/venil7/gotictactoe/engine"
 
 func main() {
-	field := NewField()
+	field := Engine.NewField()
 	for !field.GameOver() {
 		field.Print()
 		field.HumanInput()

@@ -1,7 +1,6 @@
-package main
+package engine
 
 import (
-	// "fmt"
 	"testing"
 )
 
@@ -109,5 +108,21 @@ func TestGameOver3(t *testing.T) {
 	field.Set(8, X)
 	if !field.GameOver() {
 		t.Fatal("winning comb doesnt game over")
+	}
+}
+
+func TestMinIndex1(t *testing.T) {
+	arr := []int{0, +100, -100, 0, +100}
+	idx := minindex(arr)
+	if idx != 2 {
+		t.Fatal("minindex fail")
+	}
+}
+
+func TestMaxIndex1(t *testing.T) {
+	arr := []int{0, +100, -100, 0, +100}
+	idx := maxindex(arr)
+	if idx != 1 {
+		t.Fatal("maxindex fail")
 	}
 }

@@ -1,4 +1,4 @@
-package main
+package engine
 
 import (
 	"errors"
@@ -36,6 +36,19 @@ func (field *Field) Clone() *Field {
 	_field := NewField()
 	copy(_field.cells, field.cells)
 	return _field
+}
+
+func (field *Field) Eval(depth int) int {
+	if field.Winner(O) {
+		// fmt.Println("winner o")
+		return +10 - depth
+	}
+	if field.Winner(X) {
+		// fmt.Println("winner x")
+		return depth - 10
+	}
+
+	return 0
 }
 
 // an immutable version of `Set`, returns error, *Field
@@ -88,7 +101,7 @@ func (field *Field) winningCombination(celltype CellType, strip []int) bool {
 }
 
 func (field *Field) GameOver() bool {
-	return len(field.Empties()) == 0 || field.Winner(X) || field.Winner(O)
+	return field.Winner(X) || field.Winner(O) || len(field.Empties()) == 0
 }
 
 func (field *Field) Print() {
@@ -112,7 +125,65 @@ func (field *Field) HumanInput() {
 	}
 }
 
+func maxindex(arr []int) int {
+	idx, val := 0, arr[0]
+	for index, value := range arr {
+		if value > val {
+			idx, val = index, value
+		}
+	}
+	return idx
+}
+
+func minindex(arr []int) int {
+	idx, val := 0, arr[0]
+	for index, value := range arr {
+		if value < val {
+			idx, val = index, value
+		}
+	}
+	return idx
+}
+
 func (field *Field) CPUInput() {
+	_, move := Minimax(field, X, -1, 0)
+	field.Set(move, O)
+}
+
+func Minimax(field *Field, celltype CellType, pos int, depth int) (int, int) /*score, position*/ {
+	// fmt.Println("Minimax", celltype.ToString(), pos)
+	scores := make([]int, 0)
+	moves := make([]int, 0)
+
+	if field.GameOver() {
+		// field.Print()
+		return field.Eval(depth), pos
+	}
+
+	for _, move := range field.Empties() {
+		_field, error := field.Step(move, celltype)
+		if error == nil {
+			score, _ := Minimax(_field, celltype.Reverse(), move, depth+1)
+			scores = append(scores, score)
+			moves = append(moves, move)
+		} else {
+			fmt.Println(error)
+		}
+	}
+
+	var idx int
+	var action string
+	if /*CPU*/ celltype == X {
+		idx = maxindex(scores)
+		action = "max"
+	} else /*Human*/ {
+		idx = minindex(scores)
+		action = "min"
+	}
+
+	fmt.Println(pos, "-", celltype.ToString(), "-->", scores, "::", idx, moves[idx], action)
+	return scores[idx], moves[idx]
+
 }
 
 func (field *Field) ToString() string {

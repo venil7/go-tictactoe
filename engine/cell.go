@@ -1,4 +1,4 @@
-package main
+package engine
 
 type CellType int
 
@@ -17,6 +17,17 @@ func (celltype CellType) ToString() string {
 		ret = "o"
 	case Empty:
 		ret = "_"
+	}
+	return ret
+}
+
+func (celltype CellType) Reverse() CellType {
+	var ret CellType
+	switch celltype {
+	case X:
+		ret = O
+	case O:
+		ret = X
 	}
 	return ret
 }

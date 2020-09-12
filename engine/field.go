@@ -40,11 +40,9 @@ func (field *Field) Clone() *Field {
 
 func (field *Field) Eval(depth int) int {
 	if field.Winner(O) {
-		// fmt.Println("winner o")
 		return +10 - depth
 	}
 	if field.Winner(X) {
-		// fmt.Println("winner x")
 		return depth - 10
 	}
 
@@ -117,7 +115,7 @@ func (field *Field) HumanInput() {
 		}
 		error = field.Set(i, X)
 		if error != nil {
-			fmt.Println(error)
+			fmt.Errorf("%s", error)
 			continue
 		} else {
 			return
@@ -151,12 +149,10 @@ func (field *Field) CPUInput() {
 }
 
 func Minimax(field *Field, celltype CellType, pos int, depth int) (int, int) /*score, position*/ {
-	// fmt.Println("Minimax", celltype.ToString(), pos)
 	scores := make([]int, 0)
 	moves := make([]int, 0)
 
 	if field.GameOver() {
-		// field.Print()
 		return field.Eval(depth), pos
 	}
 
@@ -172,16 +168,13 @@ func Minimax(field *Field, celltype CellType, pos int, depth int) (int, int) /*s
 	}
 
 	var idx int
-	var action string
-	if /*CPU*/ celltype == X {
-		idx = maxindex(scores)
-		action = "max"
-	} else /*Human*/ {
+	switch celltype {
+	case X:
 		idx = minindex(scores)
-		action = "min"
+	case O:
+		idx = maxindex(scores)
 	}
 
-	fmt.Println(pos, "-", celltype.ToString(), "-->", scores, "::", idx, moves[idx], action)
 	return scores[idx], moves[idx]
 
 }

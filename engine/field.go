@@ -77,14 +77,28 @@ func (field *Field) Get(position int) CellType {
 }
 
 func (field *Field) Winner(celltype CellType) bool {
-	compbinations := [][]int{
-		{0, 1, 2}, {3, 4, 5}, {6, 7, 8},
-		{0, 3, 6}, {1, 4, 7}, {2, 5, 8},
-		{0, 4, 8}, {2, 4, 6},
+	combinations := [][]int{
+		{0, 1, 2},
+		{3, 4, 5},
+		{6, 7, 8},
+		{0, 3, 6},
+		{1, 4, 7},
+		{2, 5, 8},
+		{0, 4, 8},
+		{2, 4, 6},
 	}
-	for i := 0; i < len(compbinations); i++ {
-		if field.winningCombination(celltype, compbinations[i]) {
-			return true
+	ch := make(chan bool /*, len(combinations)*/)
+	for _, combination := range combinations {
+		go func(celltype CellType, comb []int, result chan<- bool) {
+			ch <- field.winningCombination(celltype, comb)
+		}(celltype, combination, ch)
+	}
+	for i := 0; i < len(combinations); i++ {
+		select {
+		case ret := <-ch:
+			if ret {
+				return ret
+			}
 		}
 	}
 	return false
@@ -126,29 +140,38 @@ func (field *Field) HumanInput() {
 	}
 }
 
-func maxindex(arr []int) int {
-	idx, val := 0, arr[0]
-	for index, value := range arr {
-		if value > val {
-			idx, val = index, value
-		}
-	}
-	return idx
-}
-
-func minindex(arr []int) int {
-	idx, val := 0, arr[0]
-	for index, value := range arr {
-		if value < val {
-			idx, val = index, value
-		}
-	}
-	return idx
-}
-
 func (field *Field) CPUInput() {
-	eval := Minimax(field, X, -1, 0)
+	// eval := Minimax(field, X, -1, 0) // no goroutines version
+	eval := minimax(field)
 	field.Set(eval.position, O)
+}
+
+func minimax(field *Field) Eval {
+	empties := field.Empties()
+	len := len(empties)
+	ch := make(chan Eval, len)
+	for _, possiblePosition := range empties {
+		go func(field *Field, possiblePosition int, result chan<- Eval) {
+			fieldCopy, _ := field.Step(possiblePosition, O /*cpu*/)
+			result <- Minimax(fieldCopy, X /*human*/, possiblePosition, 1)
+		}(field, possiblePosition, ch)
+	}
+
+	var eval Eval = Eval{score: -1000}
+
+	for i := 0; i < len; i++ {
+		select {
+		case ev := <-ch:
+			{
+				if ev.score > eval.score {
+					eval = ev
+				}
+			}
+		}
+	}
+
+	return eval
+
 }
 
 func Minimax(field *Field, celltype CellType, pos int, depth int) Eval {
@@ -171,9 +194,9 @@ func Minimax(field *Field, celltype CellType, pos int, depth int) Eval {
 	sort.Slice(evals, func(i, j int) bool { return evals[i].score < evals[j].score })
 
 	if celltype == X {
-		return evals[0]
+		return Eval{score: evals[0].score, position: pos}
 	}
-	return evals[len(evals)-1]
+	return Eval{score: evals[len(evals)-1].score, position: pos}
 }
 
 func (field *Field) ToString() string {

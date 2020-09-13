@@ -3,6 +3,7 @@ package engine
 import (
 	"errors"
 	"fmt"
+	"sort"
 )
 
 const TOTAL = 9
@@ -11,12 +12,14 @@ type Field struct {
 	cells []CellType
 }
 
+type Eval struct {
+	score    int
+	position int
+}
+
 func NewField() *Field {
 	field := new(Field)
 	field.cells = make([]CellType, 9)
-	for i, _ := range field.cells {
-		field.cells[i] = Empty
-	}
 
 	return field
 }
@@ -144,39 +147,33 @@ func minindex(arr []int) int {
 }
 
 func (field *Field) CPUInput() {
-	_, move := Minimax(field, X, -1, 0)
-	field.Set(move, O)
+	eval := Minimax(field, X, -1, 0)
+	field.Set(eval.position, O)
 }
 
-func Minimax(field *Field, celltype CellType, pos int, depth int) (int, int) /*score, position*/ {
-	scores := make([]int, 0)
-	moves := make([]int, 0)
+func Minimax(field *Field, celltype CellType, pos int, depth int) Eval {
+	evals := make([]Eval, 0)
 
 	if field.GameOver() {
-		return field.Eval(depth), pos
+		return Eval{score: field.Eval(depth), position: pos}
 	}
 
-	for _, move := range field.Empties() {
-		_field, error := field.Step(move, celltype)
+	for _, possiblePosition := range field.Empties() {
+		fieldCopy, error := field.Step(possiblePosition, celltype)
 		if error == nil {
-			score, _ := Minimax(_field, celltype.Reverse(), move, depth+1)
-			scores = append(scores, score)
-			moves = append(moves, move)
+			eval := Minimax(fieldCopy, celltype.Reverse(), possiblePosition, depth+1)
+			evals = append(evals, eval)
 		} else {
-			fmt.Println(error)
+			fmt.Errorf("%s", error)
 		}
 	}
 
-	var idx int
-	switch celltype {
-	case X:
-		idx = minindex(scores)
-	case O:
-		idx = maxindex(scores)
+	sort.Slice(evals, func(i, j int) bool { return evals[i].score < evals[j].score })
+
+	if celltype == X {
+		return evals[0]
 	}
-
-	return scores[idx], moves[idx]
-
+	return evals[len(evals)-1]
 }
 
 func (field *Field) ToString() string {

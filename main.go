@@ -10,4 +10,5 @@ func main() {
 		field.CPUInput()
 	}
 	field.Print()
+
 }

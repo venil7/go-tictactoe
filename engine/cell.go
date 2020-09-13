@@ -9,25 +9,22 @@ const (
 )
 
 func (celltype CellType) ToString() string {
-	var ret string
 	switch celltype {
 	case X:
-		ret = "x"
+		return "x"
 	case O:
-		ret = "o"
-	case Empty:
-		ret = "_"
+		return "o"
 	}
-	return ret
+	return "_"
+
 }
 
 func (celltype CellType) Reverse() CellType {
-	var ret CellType
 	switch celltype {
 	case X:
-		ret = O
+		return O
 	case O:
-		ret = X
+		return X
 	}
-	return ret
+	panic("cant reverse")
 }
